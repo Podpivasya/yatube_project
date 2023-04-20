@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}
+Записи сообщества {{group.title}}
+{% endblock %}
+{% block header %}{{group.title}}{% endblock %}
+{% block content %}
+{% include 'posts/includes/paginator.html' %}
+<h2>Цитаты {{group.title}}</h2>
+<p>{{group.description|linebreaks }}</p>
+{% for post in posts %}
+<h3>
+Автор: {{ post.author.get_full_name }}, Дата публикации: {{ post.pub_date|date:"d M Y" }}, {{group.title}}
+</h3>
+  <p>{{ post.text|linebreaks }}</p>    
+{% if not forloop.last %}<hr>{% endif %}
+{% endfor %}
+
+{% endblock %}
