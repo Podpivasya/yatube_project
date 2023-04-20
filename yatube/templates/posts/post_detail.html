@@ -1,48 +1,81 @@
-<!DOCTYPE html>
-<html lang="ru"> 
-  <head>  
-    <!-- Подключены иконки, стили и заполенены мета теги -->
-    <title>Профайл пользователя {{ post.author.get_full_name }} </title>
-  </head>
-  <body>       
-    <header>
-      <nav class="navbar navbar-light" style="background-color: lightskyblue">
-        <div class="container">
-          <a class="navbar-brand" href="/">
-            <img src="/static/img/logo.png" width="30" height="30" class="d-inline-block align-top" alt="">
-            <span style="color:red">Ya</span>tube
+{% extends 'base.html' %}
+{% load thumbnail %}
+{% load user_filters %}
+{% block title %}
+  Пост {{ post.text|truncatechars:30 }}
+{% endblock %}
+{% block content %}
+  <div class="row">
+    <aside class="col-12 col-md-3">
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+          Дата публикации: {{ post.pub_date|date:"d E Y" }}
+        </li>
+        <!-- если у поста есть группа -->
+        {% if post.group %}
+            <li class="list-group-item">
+                Группа: {{ post.group.title }}
+            </li>
+            <li class="list-group-item">
+              <a href="{% url 'posts:group_list' post.group.slug %}">
+                все записи группы
+              </a>
+            </li>
+        {% endif %}   
+        <li class="list-group-item">
+          Автор: {{ post.author.get_full_name }}
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          Всего постов автора:  {{ post_count }}
+        </li>
+        <li class="list-group-item">
+          <a href="{% url 'posts:profile' post.author %}">
+            все посты пользователя
           </a>
+        </li>
+      </ul>
+    </aside>
+    <article class="col-12 col-md-9">
+      {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
+        <img class="card-img my-2" src="{{ im.url }}">
+      {% endthumbnail %}
+      <p>
+        {{ post.text }}
+      </p>
+      {% if post.author == user %}
+        <a class="btn btn-primary" href="{% url 'posts:post_edit' post.pk %}">
+          Редактировать запись
+        </a>
+      {% endif %}
+      {% if user.is_authenticated %}
+        <div class="card my-4">
+          <h5 class="card-header">Добавить комментарий:</h5>
+          <div class="card-body">
+            <form method="post" action="{% url 'posts:add_comment' post.id %}">
+              {% csrf_token %}      
+              <div class="form-group mb-2">
+                {{ form.text|addclass:"form-control" }}
+              </div>
+              <button type="submit" class="btn btn-primary">Отправить</button>
+            </form>
+          </div>
         </div>
-      </nav>      
-    </header>
-    <main>
-      <div class="container py-5">        
-        <h1>Все посты пользователя {{ post.author.get_full_name }} </h1>
-        <h3>Всего постов: {{count}} </h3>   
-        <article>
-          <ul>
-            <li>
-              Автор: {{ post.author.get_full_name }}
-              <a href="{% url 'posts:profile' author.username %}">все посты пользователя</a>
-            </li>
-            <li>
-              Дата публикации: {{ post.pub_date|date:"d E Y" }}
-            </li>
-          </ul>
-          <p>
-            {{ post.text}}
-          </p>
-          <a href="{% url 'posts:post_detail' post.id %}">подробная информация </a>
-        </article>       
-        <a href="{% url 'posts:group_list' post.group.slug %}">все записи группы</a>        
-        <hr>
-        {% if not forloop.last %}<hr>{% endif %}
-        {% endfor %}
-        {% include 'includes/paginator.html' %}
-      </div>
-    </main>
-    <footer class="border-top text-center py-3">
-      <p>© {{ year }} Copyright <span style="color:red">Ya</span>tube</p>    
-    </footer>
-  </body>
-</html>
+      {% endif %}
+      {% for comment in post.comments.all %}
+        <div class="media mb-4">
+          <div class="media-body">
+            <h5 class="mt-0">
+              <a href="{% url 'posts:profile' comment.author.username %}">
+                {{ comment.author.username }}
+              </a>
+              {{ comment.created }}
+            </h5>
+            <p>
+              {{ comment.text }}
+            </p>
+          </div>
+        </div>
+      {% endfor %} 
+    </article>
+  </div> 
+{% endblock %}

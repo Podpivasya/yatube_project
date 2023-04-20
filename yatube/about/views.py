@@ -1,7 +1,7 @@
 from django.views.generic.base import TemplateView
 
-class AuthorPage(TemplateView):
-   template_name = 'about/Author.html'
+class AboutAuthorView(TemplateView):
+   template_name = 'about/author.html'
 
-class TechPage(TemplateView):
-   template_name = 'about/Tech.html'
+class AboutTechView(TemplateView):
+   template_name = 'about/tech.html'
